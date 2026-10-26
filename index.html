@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171923">
+  <title>소설 속 아이폰 · 인터랙티브 데모</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",sans-serif; font-synthesis:none; color:#fff; --ease:cubic-bezier(.22,.85,.22,1)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 40% 3%,#404252,#1a1b24 70%);display:flex;align-items:center;justify-content:center;padding:24px}
+    button,input,textarea{font:inherit}
+    button{cursor:pointer}
+    .phone{position:relative;width:395px;height:min(860px,calc(100svh - 48px));min-height:640px;background:#14151b;border:7px solid #14151b;border-radius:58px;box-shadow:0 0 0 2px #585963,0 0 0 5px #0f1015,0 30px 100px #000a;overflow:hidden;isolation:isolate}
+    .phone:before{content:"";position:absolute;z-index:100;top:130px;left:-9px;height:44px;width:3px;border-radius:4px;background:#43434c}
+    .wallpaper{position:absolute;inset:0;background-image:url('https://v0-gohuii.vercel.app/wallpaper.png'),radial-gradient(ellipse at 90% 95%,#f3cbbd,transparent 58%),radial-gradient(ellipse at 12% 70%,#85a8b6,transparent 65%),linear-gradient(140deg,#e9c8c2,#989fc6 45%,#b6c9d4 73%,#e9b9a9);background-size:cover;background-position:center}
+    .wallpaper:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,20,40,.07),transparent 55%,rgba(29,32,55,.18))}
+    .home{position:absolute;inset:0;z-index:2;padding:65px 20px 26px;display:flex;flex-direction:column;transition:transform .45s var(--ease),opacity .3s;}
+    .home.hidden{transform:scale(.91);opacity:0;pointer-events:none}
+    .status{position:absolute;z-index:51;top:0;left:0;width:100%;height:53px;display:flex;justify-content:space-between;align-items:center;padding:11px 28px 0;color:#191b29;font-size:16px;font-weight:700;pointer-events:none;letter-spacing:-.35px}
+    .status.is-light{color:#17181e}
+    .status-right{display:flex;align-items:center;gap:6px}
+    .status svg{width:18px;height:18px}
+    .battery{width:24px;height:12px;border:1.4px solid currentColor;border-radius:3px;position:relative;padding:2px}
+    .battery:after{content:"";position:absolute;width:2px;height:4px;right:-4px;top:3px;background:currentColor;border-radius:0 2px 2px 0;opacity:.65}
+    .battery-fill{width:64%;height:100%;background:currentColor;border-radius:1px}
+    .island{position:absolute;z-index:52;top:11px;left:50%;transform:translateX(-50%);height:30px;width:118px;border-radius:30px;background:#08090e;box-shadow:0 1px 2px #0005}
+    .island:after{content:"";position:absolute;right:13px;top:10px;width:9px;height:9px;border-radius:50%;background:#131722;box-shadow:inset 0 0 1px 1px #282e3d}
+    .widgets{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:2px}
+    .widget{aspect-ratio:1;overflow:hidden;border-radius:23px;background:rgba(255,255,255,.67);box-shadow:0 3px 15px #34405915;position:relative}
+    .calendar-widget{padding:15px 13px;color:#252739;background:rgba(255,255,255,.78)}
+    .calendar-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#e2643f;font-weight:700}
+    .calendar-day{font-size:55px;line-height:1.07;font-weight:300;letter-spacing:-3px;margin-top:3px}
+    .calendar-event{margin-top:12px;border-left:3px solid #e36f50;padding-left:8px;font-size:11px;line-height:1.6;color:#3f4150}
+    .calendar-event strong{font-size:12px;color:#252739;display:block}
+    .photo-widget{background:#383538}
+    .photo-widget img{width:100%;height:100%;object-fit:cover;display:block}
+    .photo-widget:after{content:"";position:absolute;inset:45% 0 0;background:linear-gradient(transparent,#0009)}
+    .photo-caption{position:absolute;left:15px;bottom:14px;color:#fff;z-index:1;font-size:12px;line-height:1.55;font-weight:700}
+    .photo-caption small{font-size:11px;font-weight:500;opacity:.85}
+    .gridapps{display:grid;grid-template-columns:repeat(4,1fr);gap:17px 12px;margin-top:27px}
+    .app-item{border:0;background:none;color:white;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;font-size:11px;font-weight:500;text-shadow:0 1px 3px #3e405b6b}
+    .app-icon{height:60px;width:60px;border-radius:15px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 11px #1b22313d;position:relative;overflow:hidden;transition:transform .16s}
+    .app-item:active .app-icon{transform:scale(.9)}
+    .app-icon svg{width:37px;height:37px;display:block}
+    .app-icon.settings{background:linear-gradient(#eef0f5,#bfc4cd);color:#555a67}
+    .app-icon.notes{background:linear-gradient(#fff0 27%,#f5c744 27%,#f5c744 40%,#fff 40%);color:#b6bac5}
+    .app-icon.camera{background:linear-gradient(#e0e2e6,#fcfcfd);color:#4d5057}
+    .app-icon.photos{background:#fff;color:#fc5986}
+    .app-icon.appstore{background:linear-gradient(135deg,#54c7fa,#1476e6);color:#fff}
+    .app-icon.melon{background:#03c67c;color:white;font-size:19px;font-weight:800;letter-spacing:-1px}
+    .app-icon.youtube{background:#fff;color:#ff0033}
+    .app-icon.insta{background:radial-gradient(circle at 18% 98%,#ffcc4b,transparent 42%),linear-gradient(140deg,#7755c8,#d42ca3 52%,#fa6545);color:#fff}
+    .app-icon.phone-icon{background:linear-gradient(150deg,#64e867,#11ad31);color:white}
+    .app-icon.safari{background:#fff;color:#3085e6}
+    .app-icon.kakao{background:#fee500;color:#322e00}
+    .app-icon.messages{background:linear-gradient(140deg,#65f688,#19c850);color:white}
+    .notification{position:absolute;right:-8px;top:-7px;background:#f44542;color:white;border-radius:99px;height:23px;min-width:23px;font-size:13px;font-weight:600;display:grid;place-items:center;padding:0 5px;z-index:2;border:1px solid #fff4}
+    .dock{margin-top:auto;display:flex;justify-content:space-around;align-items:center;background:rgba(245,241,249,.38);backdrop-filter:blur(28px);border-radius:27px;padding:14px 5px 12px}
+    .dock .app-icon{width:61px;height:61px}.dock .app-item>span:last-child{display:none}
+    .page-dots{display:flex;justify-content:center;gap:7px;margin:0 0 12px}
+    .page-dots span{height:6px;width:6px;border-radius:50%;background:#ffffff88}
+    .page-dots span:first-child{background:#fff}
+    .home-indicator{position:absolute;z-index:60;bottom:8px;left:50%;transform:translateX(-50%);height:5px;width:136px;background:#181921;border:0;border-radius:10px;cursor:pointer}
+    .home-indicator.light{background:#17181e}
+    .app-screen{position:absolute;inset:0;background:#f5f5f9;color:#15151b;z-index:20;transform:translateY(100%);opacity:0;pointer-events:none;transition:transform .44s var(--ease),opacity .26s;overflow:hidden}
+    .app-screen.open{transform:translateY(0);opacity:1;pointer-events:auto}
+    .app-body{height:100%;padding-top:57px;padding-bottom:34px;display:flex;flex-direction:column}
+    .nav{display:flex;justify-content:space-between;align-items:center;padding:9px 21px 8px;height:48px;flex-shrink:0}
+    .nav button,.back-btn{background:none;border:0;color:#087cf6;font-size:16px;padding:0;display:flex;align-items:center;gap:4px}
+    .nav-title{font-weight:600;font-size:17px}
+    .title-xl{font-size:34px;line-height:1.1;letter-spacing:-.8px;font-weight:730;padding:0 22px 17px;margin:0}
+    .scroll{flex:1;overflow-y:auto;scrollbar-width:none}
+    .scroll::-webkit-scrollbar{display:none}
+    .searchbox{background:#e7e7ec;border-radius:11px;padding:10px 12px;margin:0 18px 18px;color:#898992;display:flex;align-items:center;gap:8px;font-size:16px}
+    .thread{padding:14px 20px;display:flex;align-items:center;gap:13px;background:white;border-bottom:1px solid #ededf0;cursor:pointer}
+    .avatar{width:48px;height:48px;flex-shrink:0;border-radius:50%;background:linear-gradient(145deg,#abb1c8,#777da1);color:#fff;font-size:19px;display:grid;place-items:center;font-weight:600}
+    .thread-text{min-width:0;flex:1}.thread-title{font-weight:650;font-size:16px}.thread-msg{font-size:14px;color:#83838c;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;margin-top:3px}
+    .thread-date{font-size:12px;color:#9a9aa4;align-self:flex-start;margin-top:2px}
+    .conversation{display:flex;flex-direction:column;min-height:100%}.chat-day{text-align:center;color:#9898a2;font-size:12px;font-weight:600;padding:22px 0 17px}
+    .bubble{font-size:15px;line-height:1.45;max-width:75%;padding:10px 13px;border-radius:18px;white-space:pre-wrap;margin:5px 16px}
+    .bubble.other{align-self:flex-start;background:#e7e7ec;color:#13131a;border-bottom-left-radius:5px}
+    .bubble.mine{align-self:flex-end;background:#36c95b;color:white;border-bottom-right-radius:5px}
+    .chat-input{padding:10px 14px;display:flex;align-items:center;gap:10px;background:#f6f6fa;flex-shrink:0}
+    .chat-input input{flex:1;border:1px solid #d3d3da;border-radius:25px;padding:10px 13px;background:white;min-width:0;outline:none}
+    .sendbtn{border:none;border-radius:50%;background:#37c961;color:white;width:34px;height:34px;font-size:19px}
+    .toolbar{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;color:#087cf6;border-top:1px solid #dddde6;background:#f8f8fa}
+    .toolbar button{border:0;background:none;color:#087cf6;font-size:15px}
+    .note-row{background:#fff;padding:15px 22px;border-bottom:1px solid #eeeef1;cursor:pointer}
+    .note-row strong{display:block;font-size:17px;margin-bottom:5px}.note-row small{color:#9c9ca4;font-size:13px}.note-row span{color:#8d8d97;font-size:13px;margin-left:8px}
+    .note-content{margin:0 22px;flex:1;border:0;outline:0;background:none;resize:none;font-size:17px;line-height:1.55;color:#202024;width:calc(100% - 44px);padding-top:15px}
+    .keypad{max-width:290px;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:18px 28px;align-items:center;justify-items:center}
+    .key{width:72px;height:72px;border:0;border-radius:50%;background:#e5e5ea;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:30px;font-weight:350}
+    .key small{font-size:9px;letter-spacing:1px;font-weight:500}
+    .dial{display:block;margin:14px auto 18px;border:0;border-radius:50%;background:#2dcc55;width:72px;height:72px;color:#fff;display:grid;place-items:center}
+    .dialnumber{min-height:56px;text-align:center;font-size:32px;letter-spacing:1px;padding-top:4px}
+    .tabs{display:flex;justify-content:space-around;padding:12px 3px 5px;border-top:1px solid #dedee3;background:#f6f6f9;flex-shrink:0}
+    .tab{border:0;background:none;display:grid;gap:4px;justify-items:center;color:#8f8f9a;font-size:10px}.tab.active{color:#087cf6}.tab svg{width:23px;height:23px}
+    .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}.gallery>div{aspect-ratio:1;background:linear-gradient(120deg,#85716c,#ae8671)}.gallery img{width:100%;height:100%;object-fit:cover}
+    .modal-info{padding:20px 24px;color:#777983;font-size:14px;line-height:1.6}
+    .toast{position:absolute;top:66px;left:50%;transform:translateX(-50%) translateY(-15px);z-index:90;background:#222b38ec;color:#fff;white-space:nowrap;padding:12px 16px;border-radius:13px;font-size:13px;opacity:0;pointer-events:none;transition:.25s}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .footer-label{position:fixed;bottom:12px;right:16px;color:#ffffff75;font-size:12px;text-align:right}
+    .footer-label a{color:inherit}
+    @media(max-width:560px){body{padding:0;background:#16161a}.phone{width:100vw;height:100svh;min-height:0;max-height:none;border:0;border-radius:0;box-shadow:none}.home{padding-left:22px;padding-right:22px}.footer-label{display:none}}
+    @media(max-height:765px) and (min-width:561px){.phone{min-height:0;height:calc(100svh - 25px)}body{padding:12px}.gridapps{gap:10px;margin-top:18px}.app-icon{width:54px;height:54px}.dock .app-icon{width:52px;height:52px}.widget{aspect-ratio:1.12}}
+  </style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="wallpaper"></div>
+  <div class="island"></div>
+  <div class="status" id="status"><span id="status-clock">2:18</span><div class="status-right"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 8c6.1-5.3 13.9-5.3 20 0l-2.1 2.5a13.5 13.5 0 0 0-15.8 0L2 8zm4.2 4.5a10 10 0 0 1 11.6 0L12 19l-5.8-6.5z"/></svg><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 19h4v-5H2v5zm5.5 0h4v-8h-4v8zm5.5 0h4V7h-4v12zm5.5 0h4V3h-4v16z"/></svg><span class="battery"><span class="battery-fill"></span></span></div></div>
+  <div class="home" id="home">
+    <div class="widgets">
+      <button class="widget calendar-widget" onclick="openApp('calendar')" style="text-align:left;border:0;cursor:pointer"><div class="calendar-top"><span>토요일</span><span>캘린더</span></div><div class="calendar-day">24</div><div class="calendar-event"><strong>밴드 합주</strong>오후 1:00 – 5:00</div></button>
+      <button class="widget photo-widget" onclick="openApp('photos')" style="border:0;padding:0;cursor:pointer;text-align:left"><img src="https://v0-gohuii.vercel.app/photos/photo-10.jpg" alt="연습실 사진" onerror="this.style.display='none'"><div class="photo-caption"><small>추억</small><br>10월 연습실</div></button>
+    </div>
+    <div class="gridapps" id="gridapps"></div>
+    <div style="flex:1"></div>
+    <div class="page-dots"><span></span><span></span></div>
+    <div class="dock" id="dock"></div>
+  </div>
+  <div class="app-screen" id="screen"><div class="app-body" id="appbody"></div></div>
+  <button class="home-indicator" id="homebtn" aria-label="홈 화면으로 돌아가기" onclick="goHome()"></button>
+  <div class="toast" id="toast"></div>
+</div>
+<div class="footer-label">소설 속 아이폰 · GitHub Pages용 체험판<br>기존 공개 사이트를 참고해 새로 구현한 예시</div>
+<script>
+const ic={
+ phone:'<path d="M8 3.8c.6-.6 1.5-.8 2.3-.4l2.6 1.4c.8.4 1.1 1.3.9 2.1l-.8 2.5c1.5 2.8 3.4 4.7 6.2 6.2l2.5-.8c.8-.3 1.7.1 2.1.9l1.4 2.6c.4.8.2 1.7-.4 2.3l-1.4 1.4c-1 1-2.4 1.4-3.8 1C11.8 20.9 5.1 14.2 3 6.3c-.4-1.4 0-2.8 1-3.8z"/>',
+ message:'<path d="M20.5 11.5c0 5.2-4.4 9-9.5 9-1.2 0-2.3-.2-3.3-.5L3 21l1.5-4.1A8.2 8.2 0 0 1 2.5 11.5c0-5.1 4-8.5 9-8.5s9 3.4 9 8.5z"/>',
+ note:'<path d="M6 3h12M6 7h12M6 11h12M6 15h12M6 19h8"/>',
+ camera:'<path d="M4 8h4l2-3h4l2 3h4a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2zm8 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8"/>',
+ gear:'<path d="M10 2h4l.7 3 2 1.1 2.9-1.1 2 3.5-2.3 2.1v2.8l2.3 2.1-2 3.5-2.9-1.1-2 1.1-.7 3h-4l-.7-3-2-1.1-2.9 1.1-2-3.5 2.3-2.1v-2.8L2.4 8.5l2-3.5 2.9 1.1 2-1.1L10 2zm2 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6"/>',
+ appstore:'<path d="M9 3l10 18M15 3 5 21M4 16h16M11.5 3l-6 10M18.5 16h-14"/>',
+ inst:'<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.6" cy="6.5" r="1" fill="currentColor" stroke="none"/>',
+ play:'<path d="M3 7c0-2 1.5-3 3.5-3h11C19.5 4 21 5 21 7v10c0 2-1.5 3-3.5 3h-11C4.5 20 3 19 3 17V7z"/><path d="m10 8 6 4-6 4V8" fill="white" stroke="white"/>',
+ safari:'<circle cx="12" cy="12" r="10"/><path d="m16.6 7.4-3.1 6.1-6.1 3.1 3.1-6.1z" fill="#ec5358" stroke="none"/>',
+ kakao:'<path d="M12 3C6.5 3 2 6.6 2 11c0 2.7 1.6 5 4.1 6.4L5.3 21l4-2.1c.9.2 1.8.3 2.7.3 5.5 0 10-3.6 10-8S17.5 3 12 3"/>',
+ flower:'<path d="M12 12C6 9 8 3 12 5c4-2 6 4 0 7zm0 0c6-3 10 2 6 4-1 4-7 2-6-4zm0 0c1 7-5 9-7 5-4-1-2-7 7-5"/>',
+ calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/>',
+ back:'<path d="m14 5-7 7 7 7"/>',
+ search:'<circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/>'};
+function svg(name,stroke='currentColor',fill='none'){return `<svg viewBox="0 0 24 24" fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ic[name]||''}</svg>`}
+const apps=[['설정','settings','gear'],['메모','notes','note'],['카메라','camera','camera'],['사진','photos','flower'],['App Store','appstore','appstore'],['melon','melon','melon'],['YouTube','youtube','play'],['Instagram','insta','inst']];
+const dockapps=[['전화','phone-icon','phone'],['Safari','safari','safari'],['카카오톡','kakao','kakao'],['메시지','messages','message']];
+const targets={'settings':'settings','notes':'notes','camera':'camera','photos':'photos','appstore':'appstore','melon':'melon','youtube':'youtube','insta':'instagram','phone-icon':'phone','safari':'safari','kakao':'kakao','messages':'messages'};
+function appicon(className,icon){if(icon==='melon')return 'melon';if(icon==='kakao')return svg('kakao','#352900','#352900');if(icon==='message')return svg(icon,'white','white');if(icon==='play')return svg(icon,'#f03','#f03');if(icon==='safari')return svg(icon,'#398cea');if(icon==='flower')return '<span style="font-size:38px;background:conic-gradient(#fc425a,#fa9138,#f4dc3a,#4cbd70,#3989f5,#9460de,#fc425a);color:transparent;background-clip:text">✿</span>';return svg(icon)}
+function makeApps(list,el){document.getElementById(el).innerHTML=list.map(([name,style,ico])=>`<button class="app-item" onclick="openApp('${targets[style]}')"><span class="app-icon ${style}">${appicon(style,ico)}${style==='messages'?'<span class="notification">20</span>':''}</span><span>${name}</span></button>`).join('')}
+makeApps(apps,'gridapps');makeApps(dockapps,'dock');
+const screen=document.getElementById('screen'),body=document.getElementById('appbody'),home=document.getElementById('home'),status=document.getElementById('status'),homebtn=document.getElementById('homebtn');
+let active='',navState='',notes=[{title:'오늘의 메모',content:'연습실에서 있었던 일.\n\n그날의 대화를 아직도 잊을 수 없다.\n\n(이곳에 소설 속 단서나 인물의 일기를 넣을 수 있습니다.)',date:'10월 24일'},{title:'해야 할 일',content:'- 합주 시간 확인\n- 사진 정리\n- 연락하기',date:'10월 23일'}],editIndex=0,number='',selectedThread=0;
+let conversations=[{name:'서윤',initial:'서',snippet:'오늘 연습실에서 보자',date:'오후 1:42',messages:[['other','오늘 연습실에서 보자.'],['mine','응, 조금 늦을 수도 있어.'],['other','괜찮아. 도착하면 연락해.']]},{name:'민재',initial:'민',snippet:'그 사진 아직 가지고 있어?',date:'어제',messages:[['other','그 사진 아직 가지고 있어?'],['mine','무슨 사진?'],['other','10월에 찍은 사진 말이야.']]}];
+const navbar=(title,back='홈')=>`<div class="nav"><button onclick="${back==='홈'?'goHome()':'openApp(\''+back+'\')'}">${svg('back')} ${back==='홈'?'홈':back==='messages'?'메시지':'뒤로'}</button><span class="nav-title">${title}</span><span style="width:38px"></span></div>`;
+function toast(t){let el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(window._toastTimer);window._toastTimer=setTimeout(()=>el.classList.remove('show'),2100)}
+function openApp(id,sub){active=id;navState=sub||'';home.classList.add('hidden');screen.classList.add('open');status.classList.add('is-light');homebtn.classList.add('light');screen.style.background='#f6f6f9';draw()}
+function goHome(){screen.classList.remove('open');home.classList.remove('hidden');status.classList.remove('is-light');homebtn.classList.remove('light');active='';navState='';}
+function draw(){
+ if(active==='messages'){
+  if(navState==='thread'){const c=conversations[selectedThread];body.innerHTML=navbar(c.name,'messages')+`<div class="scroll" id="chatScroll"><div class="conversation"><div class="chat-day">오늘 · 오후 2:18</div>${c.messages.map(([who,msg])=>`<div class="bubble ${who}">${esc(msg)}</div>`).join('')}</div></div><form class="chat-input" onsubmit="sendMessage(event)"><input id="msgInput" autocomplete="off" placeholder="iMessage" aria-label="메시지 입력"><button class="sendbtn" aria-label="보내기">↑</button></form>`;setTimeout(()=>document.getElementById('chatScroll').scrollTop=99999,20)}
+  else body.innerHTML=navbar('메시지')+'<h1 class="title-xl">메시지</h1><div class="searchbox">'+svg('search')+' 검색</div><div class="scroll">'+conversations.map((c,i)=>`<div class="thread" onclick="selectedThread=${i};openApp('messages','thread')"><div class="avatar">${c.initial}</div><div class="thread-text"><div class="thread-title">${c.name}</div><div class="thread-msg">${esc(c.snippet)}</div></div><div class="thread-date">${c.date} ›</div></div>`).join('')+'</div>';
+ }
+ else if(active==='notes'){
+  if(navState==='edit'){const n=notes[editIndex];body.innerHTML=navbar('메모','notes')+`<textarea class="note-content" id="noteEditor" oninput="saveNote()" placeholder="메모 입력">${esc(n.content)}</textarea><div class="toolbar"><button onclick="openApp('notes')">‹ 모든 메모</button><button onclick="saveNote();openApp('notes')">완료</button></div>`}
+  else body.innerHTML=navbar('메모')+'<h1 class="title-xl">메모</h1><div class="scroll">'+notes.map((n,i)=>`<div class="note-row" onclick="editIndex=${i};openApp('notes','edit')"><strong>${esc(n.title)}</strong><small>${n.date}</small><span>${esc(n.content.replace(/\n/g,' ').slice(0,25))}</span></div>`).join('')+`</div><div class="toolbar"><span>${notes.length}개의 메모</span><button onclick="notes.unshift({title:'새로운 메모',content:'',date:'오늘'});editIndex=0;openApp('notes','edit')">✎ 새 메모</button></div>`;
+ }
+ else if(active==='phone'){
+  body.innerHTML=navbar('전화')+`<div class="scroll" style="display:flex;flex-direction:column;justify-content:flex-end"><div class="dialnumber" id="dialnumber">${number||' '}</div><div class="keypad">${['1','2','3','4','5','6','7','8','9','*','0','#'].map((v)=>`<button class="key" onclick="number+='${v}';document.getElementById('dialnumber').textContent=number">${v}<small>${({2:'ABC',3:'DEF',4:'GHI',5:'JKL',6:'MNO',7:'PQRS',8:'TUV',9:'WXYZ'})[v]||'　'}</small></button>`).join('')}</div><button class="dial" onclick="toast(number?'시연 화면이므로 실제 통화는 연결되지 않습니다':'번호를 입력해 주세요')">${svg('phone','white')}</button></div><div class="tabs"><button class="tab">즐겨찾기</button><button class="tab">최근 통화</button><button class="tab">연락처</button><button class="tab active">키패드</button><button class="tab">음성 사서함</button></div>`;
+ }
+ else if(active==='photos'){
+  body.innerHTML=navbar('사진')+'<h1 class="title-xl">보관함</h1><div class="scroll"><div class="gallery">'+Array.from({length:15},(_,i)=>`<div onclick="showPhoto()">${i===9||i===0?'<img src="https://v0-gohuii.vercel.app/photos/photo-10.jpg" alt="연습실 사진">':''}</div>`).join('')+'</div><div class="modal-info">소설 속 장면, 사진, 단서 등을 연결할 수 있는 갤러리입니다.</div></div>';
+ }
+ else if(active==='calendar'){
+  body.innerHTML=navbar('캘린더')+'<h1 class="title-xl">10월 24일 토요일</h1><div class="scroll"><div class="note-row"><strong>오후 1:00 – 5:00</strong><span>밴드 합주</span></div><div class="modal-info">캘린더 일정과 소설 속 사건을 연결할 수 있습니다.</div></div>';
+ }
+ else if(active==='settings'){
+  body.innerHTML=navbar('설정')+`<h1 class="title-xl">설정</h1><div class="scroll"><div class="note-row"><strong>등장인물의 iPhone</strong><small>기기 정보 · 설정 화면</small></div><div class="note-row" onclick="toast('예시 화면입니다')"><strong>알림</strong></div><div class="note-row" onclick="toast('예시 화면입니다')"><strong>배경화면</strong></div><div class="note-row" onclick="toast('예시 화면입니다')"><strong>일반</strong></div></div>`;
+ }
+ else{
+  const name={camera:'카메라',appstore:'App Store',melon:'melon',youtube:'YouTube',instagram:'Instagram',safari:'Safari',kakao:'카카오톡'}[active]||active;
+  body.innerHTML=navbar(name)+`<div class="scroll" style="display:grid;place-items:center"><div style="text-align:center;padding:30px;color:#8e8e99"><div style="font-size:55px;margin-bottom:15px">${{camera:'◎',appstore:'Ⓐ',melon:'♫',youtube:'▶',instagram:'◎',safari:'🌐',kakao:'●'}[active]||'○'}</div><div style="font-size:21px;font-weight:650;color:#38383e">${name}</div><div style="font-size:14px;margin-top:12px;line-height:1.6">이 앱의 내부 화면도<br>원하는 소설 설정에 맞게 제작할 수 있습니다.</div></div></div>`;
+ }
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function sendMessage(event){event.preventDefault();const inp=document.getElementById('msgInput');const val=inp.value.trim();if(!val)return;conversations[selectedThread].messages.push(['mine',val]);conversations[selectedThread].snippet=val;draw()}
+function saveNote(){const el=document.getElementById('noteEditor');if(!el)return;notes[editIndex].content=el.value;notes[editIndex].title=el.value.trim().split('\n')[0].slice(0,20)||'새로운 메모'}
+function showPhoto(){toast('사진 상세 화면도 추가할 수 있습니다')}
+window.addEventListener('keydown',e=>{if(e.key==='Escape')goHome()});
+</script>
+</body>
+</html>
